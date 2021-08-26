@@ -4,7 +4,7 @@ namespace Uccu\SwKoaLog;
 
 use Swoole\Process\Pool;
 
-class Log
+abstract class Log
 {
 
     const LEVEL_DEBUG   = 0;
@@ -111,15 +111,8 @@ class Log
         fclose($file);
     }
 
-    protected function getLogDir($recv): string
-    {
-        return getcwd() . '/log/' . date('Ym');
-    }
-
-    protected function getLogFileName($recv): string
-    {
-        return date('Ymd') . '.log';
-    }
+    abstract protected function getLogDir($recv): string;
+    abstract protected function getLogFileName($recv): string;
 
     private function println($str)
     {
