@@ -1,0 +1,29 @@
+{
+    "name": "uccu/swkoa-log",
+    "description": "log tool for swkoa",
+    "keywords": [
+        "swkoa",
+        "swoole",
+        "koa",
+        "log",
+        "pzcat"
+    ],
+    "homepage": "https://github.com/uccu/swkoa-log",
+    "license": "MIT",
+    "authors": [{
+        "name": "pzcat",
+        "email": "cat@4moe.com"
+    }],
+    "require": {
+        "php": ">=7.3.0",
+        "php-parallel-lint/php-console-color": "^1.0"
+    },
+    "require-dev": {
+        "swoole/ide-helper": "^4.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Uccu\\SwKoaLog\\": "lib"
+        }
+    }
+}
