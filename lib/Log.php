@@ -194,4 +194,9 @@ abstract class Log
         $logInfo->importFile = $log->importFile;
         return $logInfo;
     }
+
+    public static function newLogParam(string $str, array $colors = []): LogParam
+    {
+        return new LogParam($str, $colors);
+    }
 }
