@@ -15,17 +15,11 @@ class Log
 
     private $pool;
     public $workerId;
-    private $importFile;
-
-
-    public function __construct()
-    {
-        $this->importFile = true;
-    }
+    private $importFile = true;
 
     public static function setConfig(array $conf)
     {
-        $log = Log::getInstance();
+        $log = self::getInstance();
         foreach ($conf as $k => $c) {
             $log->$k = $c;
         }
@@ -43,12 +37,12 @@ class Log
 
     public static function _execFunc(Pool $pool, $workerId)
     {
-        Log::setPool($pool, $workerId);
-        Log::setConfig(['importFile' => false]);
+        self::setPool($pool, $workerId);
+        self::setConfig(['importFile' => false]);
         $process = $pool->getProcess();
         $socket = $process->exportSocket();
 
-        $log = Log::getInstance();
+        $log = self::getInstance();
         while (1) {
             $recv = $socket->recv(65535, 3600);
             if ($recv === "" || $recv === false) {
@@ -77,7 +71,7 @@ class Log
         $stdStr .= $workerId->stdStr;
         $fileStr .= $workerId->fileStr;
 
-        $level = $this->typeFormat($recv->type);
+        $level = $this->levelFormat($recv->level);
         $stdStr .= $level->stdStr;
         $fileStr .= $level->fileStr;
 
@@ -92,37 +86,37 @@ class Log
         $this->println($stdStr);
         if (!$recv->importFile) return;
 
-        $dir = $this->getLogDir();
+        $dir = $this->getLogDir($recv);
         if (!is_dir($dir)) {
             $mk = mkdir($dir, 0777, true);
             if (!$mk) {
-                Log::sendToLogSocket('Failed to create folder `' . $dir . '`', 'log', Log::LEVEL_WARN);
+                self::sendToLogSocket('Failed to create folder `' . $dir . '`', 'log', self::LEVEL_WARN);
                 return;
             }
         }
 
-        $path = $dir . '/' . $this->getLogFileName();
+        $path = $dir . '/' . $this->getLogFileName($recv);
 
         $file = @fopen($path, 'a');
         if (!$file) {
-            Log::sendToLogSocket('File `' . $path . '` does not have write access', 'log', Log::LEVEL_WARN);
+            self::sendToLogSocket('File `' . $path . '` does not have write access', 'log', self::LEVEL_WARN);
             return;
         }
 
         $write = fwrite($file, $fileStr . PHP_EOL);
         if (!$write) {
-            Log::sendToLogSocket('File `' . $path . '` failed to be written', 'log', Log::LEVEL_WARN);
+            self::sendToLogSocket('File `' . $path . '` failed to be written', 'log', self::LEVEL_WARN);
             return;
         }
         fclose($file);
     }
 
-    private function getLogDir(): string
+    protected function getLogDir($recv): string
     {
         return getcwd() . '/log/' . date('Ym');
     }
 
-    private function getLogFileName(): string
+    protected function getLogFileName($recv): string
     {
         return date('Ymd') . '.log';
     }
@@ -150,24 +144,24 @@ class Log
         return $param->addBrackets()->addColor("white");
     }
 
-    protected function typeFormat(int $level): LogParam
+    protected function levelFormat(int $level): LogParam
     {
 
-        if ($level === Log::LEVEL_WARN) {
+        if ($level === self::LEVEL_WARN) {
             $param = new LogParam('WARN');
             return $param->addBrackets()->addColor("yellow");
         }
-        if ($level === Log::LEVEL_ERROR) {
+        if ($level === self::LEVEL_ERROR) {
             $param = new LogParam('ERROR');
             return $param->addBrackets()->addColor("red");
         }
 
-        if ($level === Log::LEVEL_DEBUG) {
+        if ($level === self::LEVEL_DEBUG) {
             $param = new LogParam('DEBUG');
             return $param->addBrackets();
         }
 
-        if ($level === Log::LEVEL_TRACE) {
+        if ($level === self::LEVEL_TRACE) {
             $param = new LogParam('TRACE');
             return $param->addBrackets();
         }
@@ -180,13 +174,13 @@ class Log
     /**
      * @var LogInfo|string $logInfo
      */
-    public static function sendToLogSocket($logInfo, string $tag = 'master', int $level = Log::LEVEL_INFO)
+    public static function sendToLogSocket($logInfo, string $tag = 'master', int $level = self::LEVEL_INFO)
     {
-        $socket = Log::getInstance()->pool->getProcess(0)->exportSocket();
+        $socket = self::getInstance()->pool->getProcess(0)->exportSocket();
 
         if (is_string($logInfo)) {
             $msg = $logInfo;
-            $logInfo = Log::newLog($tag, $level);
+            $logInfo = self::newLog($tag, $level);
             $logInfo->addParam(new LogParam($msg));
         }
 
@@ -195,14 +189,14 @@ class Log
 
     public static function setPool(Pool $pool, int $workerId)
     {
-        $log = Log::getInstance();
+        $log = self::getInstance();
         $log->pool = $pool;
         $log->workerId = $workerId;
     }
 
-    public static function newLog(string $tag = 'master', int $level = Log::LEVEL_INFO): LogInfo
+    public static function newLog(string $tag = 'master', int $level = self::LEVEL_INFO): LogInfo
     {
-        $log = Log::getInstance();
+        $log = self::getInstance();
         $logInfo = new LogInfo($level, $tag, $log->workerId);
         $logInfo->importFile = $log->importFile;
         return $logInfo;

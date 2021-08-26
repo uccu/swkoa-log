@@ -8,18 +8,18 @@ class LogInfo
 {
 
     public $params = [];
-    public $type;
+    public $level;
     public $time;
     public $tag;
     public $workerId;
     public $importFile;
 
-    public function __construct(string $type = 'info', string $tag = 'master', int $workerId = 0)
+    public function __construct(string $level = Log::LEVEL_INFO, string $tag = 'master', int $workerId = 0)
     {
         $this->importFile = true;
         $date = new DateTime();
         $this->time = $date->format('Y-m-d H:i:s:u');
-        $this->type = $type;
+        $this->level = $level;
         $this->tag = $tag;
         $this->workerId = $workerId;
     }
