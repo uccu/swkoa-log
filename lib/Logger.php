@@ -2,9 +2,11 @@
 
 namespace Uccu\SwKoaLog;
 
-use Psr\Log\LoggerTrait;
 use Psr\Log\LogLevel;
+use Psr\Log\LoggerTrait;
+use Psr\Log\LoggerInterface;
 use Psr\Log\InvalidArgumentException;
+use Psr\Log\LoggerAwareInterface;
 use Swoole\Process;
 use Swoole\Process\Pool;
 use Swoole\Process\Manager;
@@ -14,7 +16,6 @@ abstract class Logger implements LoggerInterface
 {
 
     use LoggerTrait;
-
 
     /**
      * 进程池
@@ -61,7 +62,11 @@ abstract class Logger implements LoggerInterface
     public function log($level, $message, array $context = array())
     {
 
-        if (!in_array($level, [LogLevel::EMERGENCY, LogLevel::ALERT, LogLevel::CRITICAL, LogLevel::ERROR, LogLevel::WARNING, LogLevel::NOTICE, LogLevel::INFO, LogLevel::DEBUG])) {
+        if (!in_array($level, [
+            LogLevel::EMERGENCY, LogLevel::ALERT, LogLevel::CRITICAL,
+            LogLevel::ERROR, LogLevel::WARNING, LogLevel::NOTICE,
+            LogLevel::INFO, LogLevel::DEBUG
+        ])) {
             throw new InvalidArgumentException('Not found logger level: ' . $level);
         }
 
@@ -99,9 +104,14 @@ abstract class Logger implements LoggerInterface
         }
     }
 
-    public function httpServerStartBefore($httpServer)
+    public function httpServerStartBefore(LoggerAwareInterface $httpServer)
     {
-        $this->masterWorkerId = 0;
+        $this->setConfig([
+            'pool' => $httpServer->pool,
+            'workerId' => $httpServer->workerId,
+            'masterWorkerId' => 0,
+            'tag' => 'http'
+        ]);
         $httpServer->setLogger($this);
     }
 
@@ -111,7 +121,6 @@ abstract class Logger implements LoggerInterface
      */
     public function poolStartBeforePlugin(Manager $manager)
     {
-
 
         $manager->add(function (Pool $pool, int $workerId) {
 
