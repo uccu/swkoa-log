@@ -5,8 +5,9 @@ namespace Uccu\SwKoaLog;
 use Psr\Log\LoggerTrait;
 use Psr\Log\LogLevel;
 use Psr\Log\InvalidArgumentException;
-use Swoole\Process\Pool;
 use Swoole\Process;
+use Swoole\Process\Pool;
+use Swoole\Process\Manager;
 use Swoole\Coroutine\Socket;
 
 abstract class Logger implements LoggerInterface
@@ -102,37 +103,40 @@ abstract class Logger implements LoggerInterface
      * 开启日志服务
      * @var array $config 配置
      */
-    public static function start(array $config)
+    public static function poolStartBeforePlugin(Manager $manager)
     {
 
         $log = new static;
 
-        $log->setConfig([
-            'pool' => $config['pool'],
-            'workerId' => $config['workerId'],
-            'masterWorkerId' => $config['masterWorkerId'],
-            'tag' => 'master',
-            'importFile' => false
-        ]);
+        $manager->add(function (Pool $pool, int $workerId) use ($log) {
 
-        /**
-         * @var Process $process
-         */
-        $process = $log->pool->getProcess();
+            $log->setConfig([
+                'pool' => $pool,
+                'workerId' => $workerId,
+                'masterWorkerId' => $workerId,
+                'tag' => 'master',
+                'importFile' => false
+            ]);
 
-        /**
-         * @var Socket $socket
-         */
-        $socket = $process->exportSocket();
+            /**
+             * @var Process $process
+             */
+            $process = $log->pool->getProcess();
 
-        while (1) {
-            $recv = $socket->recv(65535, 3600);
-            if ($recv === "" || $recv === false) {
-                continue;
+            /**
+             * @var Socket $socket
+             */
+            $socket = $process->exportSocket();
+
+            while (1) {
+                $recv = $socket->recv(65535, 3600);
+                if ($recv === "" || $recv === false) {
+                    continue;
+                }
+                $recv = json_decode($recv);
+                $log->output($recv);
             }
-            $recv = json_decode($recv);
-            $log->output($recv);
-        }
+        });
     }
 
     /**
