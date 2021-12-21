@@ -106,11 +106,10 @@ abstract class Logger implements LoggerInterface
     public function poolStartBeforePlugin(Manager $manager)
     {
 
-        $log = new static;
 
-        $manager->add(function (Pool $pool, int $workerId) use ($log) {
+        $manager->add(function (Pool $pool, int $workerId) {
 
-            $log->setConfig([
+            $this->setConfig([
                 'pool' => $pool,
                 'workerId' => $workerId,
                 'masterWorkerId' => $workerId,
@@ -121,7 +120,7 @@ abstract class Logger implements LoggerInterface
             /**
              * @var Process $process
              */
-            $process = $log->pool->getProcess();
+            $process = $this->pool->getProcess();
 
             /**
              * @var Socket $socket
@@ -134,7 +133,7 @@ abstract class Logger implements LoggerInterface
                     continue;
                 }
                 $recv = json_decode($recv);
-                $log->output($recv);
+                $this->output($recv);
             }
         });
     }
