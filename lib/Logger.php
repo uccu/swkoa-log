@@ -2,9 +2,9 @@
 
 namespace Uccu\SwKoaLog;
 
-use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 use Psr\Log\LogLevel;
+use Psr\Log\InvalidArgumentException;
 use Swoole\Process\Pool;
 use Swoole\Process;
 use Swoole\Coroutine\Socket;
@@ -17,12 +17,32 @@ abstract class Logger implements LoggerInterface
 
     /**
      * 进程池
-     * @var Pool|null $pool
+     * @var Pool
      */
     protected $pool;
+
+    /**
+     * 当前进程ID
+     * @var int
+     */
     protected $workerId;
+
+    /**
+     * Logger进程ID
+     * @var int
+     */
     protected $masterWorkerId;
+
+    /**
+     * 标签
+     * @var string
+     */
     protected $tag;
+
+    /**
+     * 是否导入文件
+     * @var bool
+     */
     protected $importFile = true;
 
 
@@ -35,10 +55,15 @@ abstract class Logger implements LoggerInterface
      *
      * @return void
      *
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function log($level, $message, array $context = array())
     {
+
+        if (!in_array($level, [LogLevel::EMERGENCY, LogLevel::ALERT, LogLevel::CRITICAL, LogLevel::ERROR, LogLevel::WARNING, LogLevel::NOTICE, LogLevel::INFO, LogLevel::DEBUG])) {
+            throw new InvalidArgumentException('Not found logger level: ' . $level);
+        }
+
         $info = $this->interpolate($message, $context);
         $this->sendToLogSocket($info, $level);
     }
@@ -47,10 +72,8 @@ abstract class Logger implements LoggerInterface
     /**
      * @var LogInfo|string $logInfo
      */
-    public function sendToLogSocket($logInfo, int $level = LogLevel::INFO)
+    protected function sendToLogSocket($logInfo, int $level = LogLevel::INFO)
     {
-
-        $socket = $this->pool->getProcess($this->masterWorkerId)->exportSocket();
 
         if (is_string($logInfo)) {
             $msg = $logInfo;
@@ -58,6 +81,12 @@ abstract class Logger implements LoggerInterface
             $logInfo->addParam($this->newLogParam($msg));
         }
 
+        if (is_null($this->pool) || is_null($this->masterWorkerId)) {
+            $this->output($logInfo);
+            return;
+        }
+
+        $socket = $this->pool->getProcess($this->masterWorkerId)->exportSocket();
         $socket->send(json_encode($logInfo));
     }
 
@@ -147,6 +176,9 @@ abstract class Logger implements LoggerInterface
         if (!is_dir($dir)) {
             $mk = mkdir($dir, 0777, true);
             if (!$mk) {
+                if (is_null($this->pool) || is_null($this->masterWorkerId)) {
+                    $this->importFile = false;
+                }
                 $this->warning('Failed to create folder `' . $dir . '`');
                 return;
             }
@@ -156,14 +188,19 @@ abstract class Logger implements LoggerInterface
 
         $file = @fopen($path, 'a');
         if (!$file) {
+            if (is_null($this->pool) || is_null($this->masterWorkerId)) {
+                $this->importFile = false;
+            }
             $this->warning('File `' . $path . '` does not have write access');
             return;
         }
 
         $write = fwrite($file, $fileStr . PHP_EOL);
         if (!$write) {
+            if (is_null($this->pool) || is_null($this->masterWorkerId)) {
+                $this->importFile = false;
+            }
             $this->warning('File `' . $path . '` failed to be written');
-            return;
         }
         fclose($file);
     }
