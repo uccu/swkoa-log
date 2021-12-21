@@ -99,6 +99,12 @@ abstract class Logger implements LoggerInterface
         }
     }
 
+    public function httpServerStartBefore($httpServer)
+    {
+        $this->masterWorkerId = 0;
+        $httpServer->setLogger($this);
+    }
+
     /**
      * 开启日志服务
      * @var array $config 配置
