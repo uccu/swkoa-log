@@ -104,7 +104,10 @@ abstract class Logger implements LoggerInterface
         }
     }
 
-    public function httpServerStartBefore(LoggerAwareInterface $httpServer)
+    /**
+     * @param  LoggerAwareInterface $httpServer
+     */
+    public function httpServerStartBefore($httpServer)
     {
         $this->setConfig([
             'pool' => $httpServer->pool,
