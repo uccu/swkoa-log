@@ -103,7 +103,7 @@ abstract class Logger implements LoggerInterface
      * 开启日志服务
      * @var array $config 配置
      */
-    public static function poolStartBeforePlugin(Manager $manager)
+    public function poolStartBeforePlugin(Manager $manager)
     {
 
         $log = new static;
