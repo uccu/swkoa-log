@@ -124,7 +124,7 @@ abstract class Logger implements LoggerInterface, PoolStartBeforePlugin, HttpSer
      * 开启日志服务
      * @var array $config 配置
      */
-    public function poolStartBeforePlugin(Manager $manager)
+    public function poolStartBefore(Manager $manager)
     {
 
         $manager->add(function (Pool $pool, int $workerId) {
