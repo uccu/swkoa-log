@@ -87,10 +87,12 @@ abstract class Logger implements LoggerInterface, IPoolStartBeforePlugin, IHttpS
 
         if (is_string($logInfo)) {
             $msg = $logInfo;
-            $logInfo = $this->newLog($level);
+            $logInfo = $this->newLog();
             $logInfo->addParam($this->newLogParam($msg));
         }
-
+        
+        $logInfo->level = $level;
+        
         if (is_null($this->pool) || is_null($this->masterWorkerId)) {
             $this->output($logInfo);
             return;
@@ -255,23 +257,13 @@ abstract class Logger implements LoggerInterface, IPoolStartBeforePlugin, IHttpS
     }
 
 
-    public function newLog($level = LogLevel::INFO, $tag = null): LogInfo
+    public function newLog($tag = null): LogInfo
     {
-
-        if (!in_array($level, [
-            LogLevel::EMERGENCY, LogLevel::ALERT, LogLevel::CRITICAL,
-            LogLevel::ERROR, LogLevel::WARNING, LogLevel::NOTICE,
-            LogLevel::INFO, LogLevel::DEBUG
-        ])) {
-            throw new InvalidArgumentException('Not found logger level: ' . $level);
-        }
-
         if (is_null($tag)) {
             $tag = $this->tag;
         }
 
-        $logInfo = new LogInfo($level, $tag, $this->workerId);
-        $logInfo->importFile = $this->importFile;
+        $logInfo = new LogInfo($tag, $this->importFile, $this->workerId);
         return $logInfo;
     }
 

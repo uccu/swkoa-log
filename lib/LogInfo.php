@@ -3,29 +3,27 @@
 namespace Uccu\SwKoaLog;
 
 use DateTime;
-use Psr\Log\LogLevel;
 
 class LogInfo
 {
 
     public $params = [];
-    public $level;
     public $time;
     public $tag;
     public $workerId;
+    public $level;
 
     /**
      * @var bool
      */
     public $importFile;
 
-    public function __construct(string $level = LogLevel::INFO, string $tag = 'master', int $workerId = 0)
+    public function __construct(string $tag = 'master', bool $importFile = true, int $workerId = 0)
     {
-        $this->importFile = true;
         $date = new DateTime();
         $this->time = $date->format('Y-m-d H:i:s:u');
-        $this->level = $level;
         $this->tag = $tag;
+        $this->importFile = $importFile;
         $this->workerId = $workerId;
     }
 
