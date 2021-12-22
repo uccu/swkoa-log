@@ -257,6 +257,15 @@ abstract class Logger implements LoggerInterface, IPoolStartBeforePlugin, IHttpS
 
     public function newLog($level = LogLevel::INFO): LogInfo
     {
+
+        if (!in_array($level, [
+            LogLevel::EMERGENCY, LogLevel::ALERT, LogLevel::CRITICAL,
+            LogLevel::ERROR, LogLevel::WARNING, LogLevel::NOTICE,
+            LogLevel::INFO, LogLevel::DEBUG
+        ])) {
+            throw new InvalidArgumentException('Not found logger level: ' . $level);
+        }
+        
         $logInfo = new LogInfo($level, $this->tag, $this->workerId);
         $logInfo->importFile = $this->importFile;
         return $logInfo;
