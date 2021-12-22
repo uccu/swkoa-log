@@ -82,7 +82,7 @@ abstract class Logger implements LoggerInterface, IPoolStartBeforePlugin, IHttpS
     /**
      * @var LogInfo|string $logInfo
      */
-    protected function sendToLogSocket($logInfo, int $level = LogLevel::INFO)
+    protected function sendToLogSocket($logInfo, $level = LogLevel::INFO)
     {
 
         if (is_string($logInfo)) {
