@@ -124,7 +124,7 @@ abstract class Logger implements LoggerInterface, IPoolStartBeforePlugin, IHttpS
 
         $appName = "Uccu\\SwKoaServer\\App";
         if (class_exists($appName)) {
-            $appName::$config = $this;
+            $appName::$logger = $this;
         }
 
         $manager->add(function (Pool $pool, int $workerId) {
