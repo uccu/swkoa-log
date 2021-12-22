@@ -255,7 +255,7 @@ abstract class Logger implements LoggerInterface, IPoolStartBeforePlugin, IHttpS
     }
 
 
-    public function newLog($level = LogLevel::INFO): LogInfo
+    public function newLog($level = LogLevel::INFO, $tag = null): LogInfo
     {
 
         if (!in_array($level, [
@@ -265,8 +265,12 @@ abstract class Logger implements LoggerInterface, IPoolStartBeforePlugin, IHttpS
         ])) {
             throw new InvalidArgumentException('Not found logger level: ' . $level);
         }
-        
-        $logInfo = new LogInfo($level, $this->tag, $this->workerId);
+
+        if (is_null($tag)) {
+            $tag = $this->tag;
+        }
+
+        $logInfo = new LogInfo($level, $tag, $this->workerId);
         $logInfo->importFile = $this->importFile;
         return $logInfo;
     }
