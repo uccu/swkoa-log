@@ -11,10 +11,10 @@ use Swoole\Process;
 use Swoole\Process\Pool;
 use Swoole\Process\Manager;
 use Swoole\Coroutine\Socket;
-use Uccu\SwKoaPlugin\HttpServerStartBeforePlugin;
-use Uccu\SwKoaPlugin\PoolStartBeforePlugin;
+use Uccu\SwKoaPlugin\IHttpServerStartBeforePlugin;
+use Uccu\SwKoaPlugin\IPoolStartBeforePlugin;
 
-abstract class Logger implements LoggerInterface, PoolStartBeforePlugin, HttpServerStartBeforePlugin
+abstract class Logger implements LoggerInterface, IPoolStartBeforePlugin, IHttpServerStartBeforePlugin
 {
 
     use LoggerTrait;
@@ -106,9 +106,7 @@ abstract class Logger implements LoggerInterface, PoolStartBeforePlugin, HttpSer
         }
     }
 
-    /**
-     * @param  LoggerAwareInterface $httpServer
-     */
+
     public function httpServerStartBefore($httpServer)
     {
         $this->setConfig([
@@ -117,15 +115,15 @@ abstract class Logger implements LoggerInterface, PoolStartBeforePlugin, HttpSer
             'masterWorkerId' => 0,
             'tag' => 'http'
         ]);
-        $httpServer->setLogger($this);
     }
 
-    /**
-     * 开启日志服务
-     * @var array $config 配置
-     */
-    public function poolStartBefore(Manager $manager)
+    public function poolStartBefore($manager)
     {
+
+        $appName = "Uccu\\SwKoaServer\\App";
+        if (class_exists($appName)) {
+            $appName::$config = $this;
+        }
 
         $manager->add(function (Pool $pool, int $workerId) {
 
