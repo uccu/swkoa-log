@@ -54,7 +54,7 @@ abstract class Logger implements LoggerInterface, IPoolStartBeforePlugin, IHttpS
      * Logs with an arbitrary level.
      *
      * @param mixed  $level
-     * @param string $message
+     * @param LogInfo|string $message
      * @param array  $context
      *
      * @return void
@@ -72,7 +72,11 @@ abstract class Logger implements LoggerInterface, IPoolStartBeforePlugin, IHttpS
             throw new InvalidArgumentException('Not found logger level: ' . $level);
         }
 
-        $info = $this->interpolate($message, $context);
+        if (is_string($message)) {
+            $info = $this->interpolate($message, $context);
+        } else {
+            $info = $message;
+        }
         $this->sendToLogSocket($info, $level);
     }
 
