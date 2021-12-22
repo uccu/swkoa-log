@@ -11,8 +11,8 @@ use Swoole\Process;
 use Swoole\Process\Pool;
 use Swoole\Process\Manager;
 use Swoole\Coroutine\Socket;
-use Uccu\SwKoaPlugin\Plugin\HttpServerStartBeforePlugin;
-use Uccu\SwKoaPlugin\Plugin\PoolStartBeforePlugin;
+use Uccu\SwKoaPlugin\HttpServerStartBeforePlugin;
+use Uccu\SwKoaPlugin\PoolStartBeforePlugin;
 
 abstract class Logger implements LoggerInterface, PoolStartBeforePlugin, HttpServerStartBeforePlugin
 {
