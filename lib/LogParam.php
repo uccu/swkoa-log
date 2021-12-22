@@ -48,13 +48,13 @@ class LogParam
         return $param->addBrackets()->addColor("cyan");
     }
 
-    public static function workerIdFormat(string $tag): LogParam
+    public static function workerIdFormat(int $tag): LogParam
     {
         $param = new LogParam($tag);
         return $param->addBrackets()->addColor("white");
     }
 
-    public static function levelFormat(int $level): LogParam
+    public static function levelFormat($level): LogParam
     {
 
         $param = new LogParam(strtoupper($level));
